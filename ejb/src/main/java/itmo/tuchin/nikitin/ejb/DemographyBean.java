@@ -1,20 +1,20 @@
-package service;
+package itmo.tuchin.nikitin.ejb;
 
-import client.PeopleClient;
+import itmo.tuchin.nikitin.ejb.client.PeopleClient;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class PeopleService {
+@Stateless
+public class DemographyBean implements DemographyBeanRemoteTest {
 
     private List<String> colors;
     private List<String> countries;
 
-    private final PeopleClient peopleClient;
-
-    public PeopleService() {
-        peopleClient = new PeopleClient();
-    }
+    @Inject
+    PeopleClient peopleClient;
 
     private List<String> getColors() {
         if (colors == null) {
@@ -30,7 +30,9 @@ public class PeopleService {
         return countries;
     }
 
-    public double getPercentage(String color) {
+    @Override
+    public double getPercentageByHairColor(String color) {
+        System.out.println(this);
         if (color == null || color.isEmpty() || !getColors().contains(color.toUpperCase())) {
             throw new IllegalArgumentException("hair-color");
         }
@@ -38,7 +40,9 @@ public class PeopleService {
         return total == 0 ? 0.0 : (double) peopleClient.getCountByHairColor(color) / total * 100;
     }
 
-    public int getCount(String nationality, String color) {
+    @Override
+    public int getCountByNationalityAndHairColor(String nationality, String color) {
+        System.out.println(this);
         List<String> errors = new LinkedList<>();
         if (color == null || color.isEmpty() || !getColors().contains(color.toUpperCase())) {
             errors.add("hair-color");

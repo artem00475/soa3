@@ -1,49 +1,57 @@
-package client;
+package itmo.tuchin.nikitin.ejb.client;
 
-import dto.EnumDTO;
-import dto.TotalDTO;
+import itmo.tuchin.nikitin.ejb.dto.EnumDTO;
+import itmo.tuchin.nikitin.ejb.dto.TotalDTO;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.core.Response;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class PeopleClient {
+@RequestScoped
+public class PeopleClient implements Serializable {
     private static final String REST_URI
-            = "https://localhost:8080/api/v1";
+            = "https://first-1:8080/api/v1";
 
-    private Client getClient() {
-        return ClientBuilder.newBuilder()
+    private Client client;
+
+    @PostConstruct
+    private void getClient() {
+        System.out.println("created client");
+        client = ClientBuilder.newBuilder()
                 .hostnameVerifier((s, session) -> true)
                 .build();
     }
 
+    @PreDestroy
+    private void closeClient() {
+        System.out.println("closed client");
+        client.close();
+    }
+
     public int getTotal() {
-        Client client = getClient();
         Response responseTotal = client.target(REST_URI)
                 .path("people")
                 .queryParam("limit", 1)
                 .request()
                 .get();
-        int total = responseTotal.readEntity(TotalDTO.class).getTotal();
-        client.close();
-        return total;
+        return responseTotal.readEntity(TotalDTO.class).getTotal();
     }
 
     public int getCountByHairColor(String color) {
-        Client client = getClient();
         Response responseTotalByColor = client.target(REST_URI)
                 .path("people")
                 .queryParam("hairColor", color)
                 .request()
                 .get();
-        int totalByColor = responseTotalByColor.readEntity(TotalDTO.class).getTotal();
-        client.close();
-        return totalByColor;
+        return responseTotalByColor.readEntity(TotalDTO.class).getTotal();
     }
 
     public int getCountByNationalityAndHairColor(String nationality, String color) {
-        Client client = getClient();
         Response responseCount = client.target(REST_URI)
                 .path("people")
                 .queryParam("limit", 1)
@@ -51,30 +59,22 @@ public class PeopleClient {
                 .queryParam("hairColor", color)
                 .request()
                 .get();
-        int count = responseCount.readEntity(TotalDTO.class).getTotal();
-        client.close();
-        return count;
+        return responseCount.readEntity(TotalDTO.class).getTotal();
     }
 
     public List<String> getColors() {
-        Client client = getClient();
         Response responseCount = client.target(REST_URI)
                 .path("color")
                 .request()
                 .get();
-        List<String> colors = responseCount.readEntity(EnumDTO.class).getData();
-        client.close();
-        return colors;
+        return responseCount.readEntity(EnumDTO.class).getData();
     }
 
     public List<String> getCountries() {
-        Client client = getClient();
         Response responseCount = client.target(REST_URI)
                 .path("country")
                 .request()
                 .get();
-        List<String> countries = responseCount.readEntity(EnumDTO.class).getData();
-        client.close();
-        return countries;
+        return responseCount.readEntity(EnumDTO.class).getData();
     }
 }
