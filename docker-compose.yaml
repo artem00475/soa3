@@ -31,6 +31,7 @@ services:
       - "8080:8080"
     links:
       - postgres
+      - consul
     networks:
       dev:
         ipv4_address: 172.20.0.3
@@ -47,6 +48,7 @@ services:
       - "8081:8080"
     links:
       - postgres
+      - consul
     networks:
       dev:
         ipv4_address: 172.20.0.4
@@ -82,21 +84,9 @@ services:
         ipv4_address: 172.20.0.6
     healthcheck:
       test: [ "CMD", "consul", "members" ]
-      interval: 30s
+      interval: 10s
       timeout: 10s
       retries: 3
-
-  registrator:
-    image: gliderlabs/registrator:master
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock
-    command: consul://consul:8500
-    networks:
-      dev:
-        ipv4_address: 172.20.0.7
-    depends_on:
-      consul:
-        condition: service_healthy
 
   second-1:
     build: second-service/
@@ -106,7 +96,7 @@ services:
       dev:
         ipv4_address: 172.20.0.8
     links:
-      - first-1
+      - haproxy
     environment:
       - WILDFLY_USERNAME=admin
       - WILDFLY_PASSWORD=password
@@ -115,6 +105,8 @@ services:
     build: second-service/
     ports:
       - "8083:8081"
+    links:
+      - haproxy
     networks:
       dev:
         ipv4_address: 172.20.0.9

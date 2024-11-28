@@ -37,10 +37,9 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>itmo.tuchin.nikitin</groupId>
+      <groupId>kek</groupId>
       <artifactId>ejb</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>compile</scope>
+      <version>1.0.0</version>
     </dependency>
 
   </dependencies>
