@@ -15,7 +15,7 @@ import java.util.List;
 @RequestScoped
 public class PeopleClient implements Serializable {
     private static final String REST_URI
-            = "https://first-1:8080/api/v1";
+            = "https://172.20.0.5:8089/api/v1";
 
     private Client client;
 
