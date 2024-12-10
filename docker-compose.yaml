@@ -59,11 +59,17 @@ services:
         condition: service_started
 
   haproxy:
-    image: haproxy:latest
+    image: haproxytech/haproxy-ubuntu:latest
     ports:
       - "8089:8089"
       - "8090:8090"
       - "443:443"
+      - "8404:8404"
+      - "9000:9000"
+    links:
+      - consul
+      - first-1
+      - first-2
     networks:
       dev:
         ipv4_address: 172.20.0.5
@@ -79,6 +85,7 @@ services:
     command: agent -dev -client=0.0.0.0
     ports:
       - "8500:8500"
+      - "8600:8600"
     networks:
       dev:
         ipv4_address: 172.20.0.6
@@ -92,6 +99,7 @@ services:
     build: second-service/
     ports:
       - "8082:8081"
+      - "9990:9990"
     networks:
       dev:
         ipv4_address: 172.20.0.8
@@ -105,6 +113,7 @@ services:
     build: second-service/
     ports:
       - "8083:8081"
+      - "9991:9990"
     links:
       - haproxy
     networks:
