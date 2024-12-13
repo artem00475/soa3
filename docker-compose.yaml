@@ -27,8 +27,6 @@ services:
   first-1:
     build: first-service/
     command: java -jar ./first-service-0.0.1-SNAPSHOT.jar
-    ports:
-      - "8080:8080"
     links:
       - postgres
       - consul
@@ -44,8 +42,6 @@ services:
   first-2:
     build: first-service/
     command: java -jar ./first-service-0.0.1-SNAPSHOT.jar
-    ports:
-      - "8081:8080"
     links:
       - postgres
       - consul
@@ -72,16 +68,14 @@ services:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - ./key.pem:/usr/local/etc/haproxy/key.pem
     depends_on:
-      - first-1
-      - first-2
+      consul:
+        condition: service_started
 
   consul:
     image: hashicorp/consul:latest
-    command: agent -dev -ui -bind=0.0.0.0 -client=0.0.0.0
     ports:
       - "8500:8500"
       - "8600:8600"
-      - "80:80"
     networks:
       dev:
         ipv4_address: 172.20.0.6
@@ -94,28 +88,22 @@ services:
   second-1:
     build: second-service/
     ports:
-      - "8082:8081"
+      - "9990:9990"
     networks:
       dev:
         ipv4_address: 172.20.0.8
     links:
       - haproxy
-    environment:
-      - WILDFLY_USERNAME=admin
-      - WILDFLY_PASSWORD=password
 
   second-2:
     build: second-service/
     ports:
-      - "8083:8081"
+      - "9991:9990"
     links:
       - haproxy
     networks:
       dev:
         ipv4_address: 172.20.0.9
-    environment:
-      - WILDFLY_USERNAME=admin
-      - WILDFLY_PASSWORD=password
 
 networks:
   dev:
