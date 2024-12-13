@@ -59,17 +59,12 @@ services:
         condition: service_started
 
   haproxy:
-    image: haproxytech/haproxy-ubuntu:latest
+    image: haproxy:latest
     ports:
       - "8089:8089"
       - "8090:8090"
       - "443:443"
-      - "8404:8404"
       - "9000:9000"
-    links:
-      - consul
-      - first-1
-      - first-2
     networks:
       dev:
         ipv4_address: 172.20.0.5
@@ -81,16 +76,15 @@ services:
       - first-2
 
   consul:
-    image: haproxytech/haproxy-consul-connect:latest
-    command: consul agent -dev -client=0.0.0.0
+    image: hashicorp/consul:latest
+    command: agent -dev -ui -bind=0.0.0.0 -client=0.0.0.0
     ports:
       - "8500:8500"
       - "8600:8600"
+      - "80:80"
     networks:
       dev:
         ipv4_address: 172.20.0.6
-    links:
-      - haproxy
     healthcheck:
       test: [ "CMD", "consul", "members" ]
       interval: 10s
@@ -101,7 +95,6 @@ services:
     build: second-service/
     ports:
       - "8082:8081"
-      - "9990:9990"
     networks:
       dev:
         ipv4_address: 172.20.0.8
@@ -115,7 +108,6 @@ services:
     build: second-service/
     ports:
       - "8083:8081"
-      - "9991:9990"
     links:
       - haproxy
     networks:
