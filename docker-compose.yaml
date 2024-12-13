@@ -14,8 +14,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
     restart: unless-stopped
+    networks:
+      dev:
+        ipv4_address: 172.20.0.2
     deploy:
       resources:
         limits:
@@ -25,39 +27,88 @@ services:
   first-1:
     build: first-service/
     command: java -jar ./first-service-0.0.1-SNAPSHOT.jar
-    ports:
-      - "8080:8080"
     links:
       - postgres
+      - consul
+    networks:
+      dev:
+        ipv4_address: 172.20.0.3
     depends_on:
       postgres:
         condition: service_healthy
+      consul:
+        condition: service_started
 
   first-2:
     build: first-service/
     command: java -jar ./first-service-0.0.1-SNAPSHOT.jar
-    ports:
-      - "8081:8080"
     links:
       - postgres
+      - consul
+    networks:
+      dev:
+        ipv4_address: 172.20.0.4
     depends_on:
       postgres:
         condition: service_healthy
+      consul:
+        condition: service_started
+
+  haproxy:
+    image: haproxy:latest
+    ports:
+      - "8089:8089"
+      - "8090:8090"
+      - "443:443"
+      - "9000:9000"
+    networks:
+      dev:
+        ipv4_address: 172.20.0.5
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./key.pem:/usr/local/etc/haproxy/key.pem
+    depends_on:
+      consul:
+        condition: service_started
+
+  consul:
+    image: hashicorp/consul:latest
+    ports:
+      - "8500:8500"
+      - "8600:8600"
+    networks:
+      dev:
+        ipv4_address: 172.20.0.6
+    healthcheck:
+      test: [ "CMD", "consul", "members" ]
+      interval: 10s
+      timeout: 10s
+      retries: 3
 
   second-1:
     build: second-service/
     ports:
-      - "8082:8081"
+      - "9990:9990"
+    networks:
+      dev:
+        ipv4_address: 172.20.0.8
     links:
-      - first-1
-    environment:
-      - WILDFLY_USERNAME=admin
-      - WILDFLY_PASSWORD=password
+      - haproxy
 
   second-2:
     build: second-service/
     ports:
-      - "8083:8081"
-    environment:
-      - WILDFLY_USERNAME=admin
-      - WILDFLY_PASSWORD=password
+      - "9991:9990"
+    links:
+      - haproxy
+    networks:
+      dev:
+        ipv4_address: 172.20.0.9
+
+networks:
+  dev:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
